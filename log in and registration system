@@ -1,0 +1,171 @@
+// This system displays two options 
+// the first is login and 
+// the second is sign up. 
+
+#include <iostream>
+#include <string>
+#include<vector>
+#include <cctype>
+#include <fstream>
+
+// This function displays to the user the options
+// available in the system
+int menu(){
+    std::cout<<"        welcome in our program "<<std::endl<<std::endl;
+    std::cout<<"enter your choice"<<std::endl;
+    std::cout<<"1) login"<<std::endl;
+    std::cout<<"2) sign up"<<std::endl;
+    int choice{};
+    std::cin>>choice;
+    while(choice!=1 && choice!=2){
+        std::cout<<"Invalid choice, try again\n";
+        std::cin>>choice;
+    }
+    return choice;
+}
+
+// This function checks if the user name following the standard
+// user name or not. The standard user name is "name@mail.com"
+bool check_username(std::string mail){
+    if((int)mail.size()<=9)
+        return false;
+    std::string pattern {"@mail.com"};
+    int sz =(int)mail.size()-1;
+    for(int i = 8 , j =0 ; i <= 0 ; i-- , j--){
+        if(pattern[i] != mail[sz-j])
+            return false;
+    }
+    return true;
+}
+
+// This function checks if the password is 8 characters or more
+// and contains letter(s) and number(s).
+bool check_password(std::string pass){
+    if((int)pass.size()<8){
+        std::cout<<"It's short\n";
+        return false;
+    }
+    bool is_letter = false;
+    bool is_number = false;
+    for(int i = 0 ; i < int(pass.size()); i++ ){
+        if(pass[i] >= '0' && pass[i] <= '9')
+            is_number = true;
+        else if(isalpha(pass[i]))
+            is_letter = true;
+    }
+
+    if(is_letter && is_number)
+        return true;
+    return false;
+
+}
+
+
+class user{
+private:
+    std::string first_name;
+    std::string last_name;
+    std::string username;
+    std::string password;
+
+public:
+    void sign_up();
+
+    void log_in();
+};
+
+// This function asks the user to sign up and finally
+// it stores the data in the database
+void user::sign_up(){
+    user object;
+    std::cout<<"Enter your first name:";
+    std::cin>>object.first_name;
+
+    std::cout<<"Enter your last name:";
+    std::cin>>object.last_name;
+
+    std::cout<<"Enter a user name.   (for example: name@mail.com)\n";
+    std::cin>>object.username;
+    while(!check_username(object.username)){
+        std::cout<<"Invalid user name, try again.\n";
+        std::cin>>object.username;
+    }
+
+    enter_the_password_again:
+    std::cout<<"Enter your password:";
+    std::cout<<"(at least 8 characters contain letters and numbers)\n";
+    std::cin>>object.password;
+    while(!check_password(object.password)){
+        std::cout<<"Invalid password,try again:";
+        std::cin>>object.password;
+    }
+    std::string confirm_password{};
+    std::cout<<"confirm your password:";
+    std::cin>>confirm_password;
+    if(object.password != confirm_password){
+        std::cout<<"It doesn't match,try again\n";
+        goto enter_the_password_again;
+    }
+    else
+        std::cout<<"Welcome "<<object.first_name<<" "<<object.last_name<<std::endl;
+
+
+    std::fstream file;
+    file.open("users' database.txt" , std::ios::out | std::ios::app);
+    if(file.fail()){
+        std::cout<<"Unable to open the file\n";
+    }
+    file.write((char*)&object , sizeof(object));
+    file.close();
+}
+
+// This function asks the user to log in and then
+// welcomes him/her
+void user::log_in(){
+    user object ;
+    std::string user_input;
+    std::cout<<"Enter your username:";
+    std::cin>>user_input;
+    std::ifstream file;
+    file.open("users' database.txt" , std::ios::in);
+    if(file.fail()){
+        std::cout<<"Unable to open the file\n";
+    }
+    bool is_found = false;
+    file.read((char*)&object , sizeof(object));
+    while(!file.eof()){
+        if(object.username == user_input){
+            is_found = true;
+            break;
+        }
+        file.read((char*)&object , sizeof(object));
+    }
+    std::string user_password;
+    if(is_found){
+        std::cout<<"Enter your password:";
+        std::cin>>user_password;
+        while(user_password != object.password){
+            std::cout<<"Wrong password, try again\n";
+            std::cin>>user_password;
+        }
+        std::cout<<"Welcome "<<object.first_name<<" "<<object.last_name;
+    }
+    else{
+        std::cout<<"wrong username";
+    }
+}
+
+void the_system(){
+    user object;
+    int choice = menu();
+    if(choice == 1)
+        object.log_in();
+    else
+        object.sign_up();
+}
+
+int main()
+{
+    the_system();
+    return 0;
+}
